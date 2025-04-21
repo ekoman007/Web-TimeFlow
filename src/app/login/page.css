@@ -1,0 +1,85 @@
+/* Qendron e gjithë përmbajtja në qendër dhe krijon hapësirë të duhur */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Krijon hapësirë dhe dizajn për formën e login-it */
+  .login-content {
+    background: #fff;
+    padding: 20px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  /* Titulli i login-it në qendër */
+  .login-title {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 100px;
+  }
+  
+  /* Forma dhe inputet */
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  /* Inputet e formularit */
+  .input-field {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .input-field:focus {
+    border-color: #0070f3;
+    outline: none;
+  }
+  
+  /* Grupi i formularëve */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  label {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  /* Butoni i login-it */
+  .login-button {
+    background-color: #0070f3;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .login-button:hover {
+    background-color: #005bb5;
+  }
+  
+  /* Mesazhi i gabimit */
+  .error-message {
+    color: red;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  
