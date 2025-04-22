@@ -1,9 +1,18 @@
-// login/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axiosClient from "@/services/axiosClient";
+
+// Definimi i tipit të përgjigjes së login-it
+interface LoginResponse {
+  success: boolean;
+  result: {
+    accessToken: string;
+    role: "Business" | "User" | "Partner";  // mund të shtosh rolet tjera
+  };
+  message?: string;
+}
 
 export default function Login() {
   const router = useRouter();
@@ -14,14 +23,23 @@ export default function Login() {
   const handleLogin = async () => {
     try {
       const response = await axiosClient.post("/Login/login", { email, password });
-debugger
+  debugger
       if (response.status === 200 && response.data.success) {
-        // Ruaj accessToken në localStorage
+        // Ruaj accessToken dhe roleName në localStorage
         const accessToken = response.data.result.accessToken;
+        const roleName = response.data.result.roleName;
+  
         localStorage.setItem("accessToken", accessToken);
-
-        // Drejto në dashboard
-        router.push("/dashboard");
+        localStorage.setItem("roleName", roleName);
+  
+        // Drejto në dashboard sipas rolit
+        if (roleName === "BussinesAdmin") {
+          router.push("/business-dashboard");
+        } else if (roleName === "User") {
+          router.push("/user-dashboard");
+        } else {
+          router.push("/dashboard");  // default fallback
+        }
       } else {
         setError(response.data.message || "Login failed");
       }
@@ -29,6 +47,7 @@ debugger
       setError(err.message || "Login failed");
     }
   };
+  
 
   return (
     <div style={{ maxWidth: 400, margin: "auto", padding: 20 }}>

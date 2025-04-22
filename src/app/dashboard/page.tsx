@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation'; // ← këtë
-// import { authAxiosInstance } from '@/services/authAxiosInstance'; // Komentohet për momentin pasi nuk keni ende API për të dhëna
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);  // Shtoni një gjendje loading
   const router = useRouter();
 
   useEffect(() => {
@@ -19,19 +19,28 @@ export default function Dashboard() {
       return;
     }
 
-    // Pjesa e mëposhtme është komentuese për momentin, sepse nuk keni API
+    // Pasi kontrollohet tokeni, bëjmë loading false
+    setLoading(false);
+
+    // Fetch për të dhënat nëse tokeni është valid
+    // Pjesa tjetër mund të jetë si ishte më parë, për të marrë të dhëna
     // const fetchData = async () => {
     //   try {
     //     const res = await authAxiosInstance('/protected/data');  // Kërkesa për të dhëna
     //     setData(res.data);  // Ruaj të dhënat e marra
     //   } catch (err) {
-    //     console.error('Gabim gjatë marrjes së të dhënave:', err); // Debugging step
+    //     console.error('Gabim gjatë marrjes së të dhënave:', err);
     //     router.push('/login');  // Nëse ka gabim, drejto në login
     //   }
     // };
 
     // fetchData(); // Thirrja e fetchData() është komentuese për momentin
+
   }, [router]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Shfaq loading derisa të kontrollohet tokeni
+  }
 
   return (
     <div>

@@ -9,6 +9,10 @@ export default function HomePage() {
     router.push("/login");
   };
 
+  const goToSingUp = () => {
+    router.push("/singup");
+  };
+
   return (
     <main style={{ textAlign: "center", marginTop: "100px" }}>
       <h1>Welcome to TimeFlow Web!</h1>
@@ -24,7 +28,21 @@ export default function HomePage() {
           cursor: "pointer",
         }}
       >
-        Login
+        Loginsw
+      </button>
+      <button
+        onClick={goToSingUp}
+        style={{
+          padding: "10px 20px",
+          marginTop: "20px",
+          backgroundColor: "#0070f3",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Sing Up
       </button>
     </main>
   );
