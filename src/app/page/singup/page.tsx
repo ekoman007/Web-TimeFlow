@@ -38,7 +38,7 @@ export default function SignUpPage() {
         
         // Pritni disa sekonda dhe pastaj drejto te login
         setTimeout(() => {
-          router.push("/login");
+          router.push("page/login");
         }, 3000);  // Pas 3 sekondash do të drejtoni përdoruesin në login
       } else if (response.status === 200 && !response.data.success) {
         // Nëse ka një mesazh gabimi nga backend (p.sh. përdoruesi ekziston)

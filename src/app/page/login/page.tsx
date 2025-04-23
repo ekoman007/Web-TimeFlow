@@ -34,11 +34,11 @@ export default function Login() {
   
         // Drejto në dashboard sipas rolit
         if (roleName === "BussinesAdmin") {
-          router.push("/business-dashboard");
+          router.push("/page/dashboard"); // duhet me ndryshu kjo sipas rolir
         } else if (roleName === "User") {
-          router.push("/user-dashboard");
+          router.push("/page/user-dashboard");
         } else {
-          router.push("/dashboard");  // default fallback
+          router.push("/page/dashboard");  // default fallback
         }
       } else {
         setError(response.data.message || "Login failed");

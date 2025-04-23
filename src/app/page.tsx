@@ -6,11 +6,11 @@ export default function HomePage() {
   const router = useRouter();
 
   const goToLogin = () => {
-    router.push("/login");
+    router.push("page/login");
   };
 
   const goToSingUp = () => {
-    router.push("/singup");
+    router.push("page/singup");
   };
 
   return (

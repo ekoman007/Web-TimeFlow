@@ -1,6 +1,26 @@
 "use client";
+import { useState, useEffect } from "react";
+import useRoleRedirect from "@/services/useRoleRedirect";
 
 export default function BusinessDashboard() {
+  const [loading, setLoading] = useState<boolean>(true); // State për ngarkim
+  useRoleRedirect("BussinesAdmin"); // Verifikon nëse përdoruesi është "Business"
+
+  useEffect(() => {
+    // Vendosim ngarkimin në false pasi të kemi përfunduar me verifikimin e rolit
+    setLoading(false);
+  }, []);
+
+  // Kur jemi në ngarkim, shfaqim loader
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  // Kur ngarkimi përfundon, shfaqim përmbajtjen e dashboard-it
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
       <h1 className="text-4xl font-bold text-gray-800 mb-4">Mirësevini në Business Dashboard!</h1>
