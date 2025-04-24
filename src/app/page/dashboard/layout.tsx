@@ -1,4 +1,6 @@
+// src/app/dashboard/layout.tsx
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import "./dashboard.css";
 
 export default function DashboardLayout({
@@ -9,7 +11,10 @@ export default function DashboardLayout({
   return (
     <div className="dashboard-container">
       <Sidebar />
-      <main className="main-content">{children}</main>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <Header />
+        <main className="main-content">{children}</main>
+      </div>
     </div>
   );
 }

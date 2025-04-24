@@ -1,0 +1,22 @@
+.dropdown {
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  
+  .dropdown-title {
+    padding: 8px;
+    transition: background 0.2s;
+  }
+  
+  .dropdown-title:hover {
+    background: #1f2937;
+    color: #3b82f6;
+  }
+  
+  
+  .dropdown-content a {
+    padding: 4px 0;
+    color: #fff;
+  }
+  
+  
