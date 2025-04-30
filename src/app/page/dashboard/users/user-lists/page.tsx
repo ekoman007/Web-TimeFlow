@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Box, Typography, Button, Modal, TextField, FormControl, InputLabel, Select, MenuItem, Grid, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
-import { Eye, Pencil, Trash2 } from 'lucide-react'; 
+import { Eye, EyeClosed, Pencil, PencilLine, Trash2 } from 'lucide-react'; 
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.css'; 
+import { useRouter } from 'next/navigation';  
+
 
 interface User {
   id: number;
@@ -38,6 +40,23 @@ export default function UserListsPage() {
   // Modal state
   const [openModal, setOpenModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [openDetailsModal, setOpenDetailsModal] = useState(false);
+  const [openViewModal, setOpenViewModal] = useState(false);
+  const [newDetails, setNewDetails] = useState({
+    fullName: '', 
+    phoneNumber: '',
+    dateOfBirth: '',
+    profilePicture: '',
+  });
+  const [openUpdateModal, setOpenUpdateModal] = useState(false); 
+  const [updateDetails, setUpdateDetails] = useState({
+    fullName: '',
+    phoneNumber: '',
+    dateOfBirth: '',
+    profilePicture: '',
+  });
+  const router = useRouter();
+
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -88,8 +107,8 @@ export default function UserListsPage() {
   // Add new column for action buttons
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'username', headerName: 'Username', flex: 1 },
-    { field: 'email', headerName: 'Email', flex: 1 },
+    { field: 'username', headerName: 'Username',  width: 100 },
+    { field: 'email', headerName: 'Email', width: 200 },
     {
       field: 'isActive',
       headerName: 'Aktiv',
@@ -98,11 +117,11 @@ export default function UserListsPage() {
         return params ? 'Po' : 'Jo';
       },
     },
-    { field: 'roleName', headerName: 'Role Name', width: 100 },
+    { field: 'roleName', headerName: 'Role Name', width: 150 },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 150,
+      width: 250,
       renderCell: (params) => {
         const user = params.row;
         return (
@@ -114,11 +133,48 @@ export default function UserListsPage() {
             >
               <Pencil />
             </button>
+            <button
+            onClick={() => handleOpenDetailsModal(user.id)}
+            aria-label={`Shto detaje për përdoruesin me ID ${user.id}`}
+            style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
+          >
+            <Eye />
+          </button>
+          <button
+            onClick={() => handleOpenViewModal(user.id)}
+            aria-label={`Shto detaje për përdoruesin me ID ${user.id}`}
+            style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
+          >
+            <EyeClosed />
+          </button>
+          <button
+            onClick={() => handleOpenUpdateModal(user.id)}
+            aria-label={`Përditëso detajet e përdoruesit me ID ${user.id}`}
+            style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
+          >
+            <PencilLine /> {/* Ose ikona që don */}
+          </button> 
+          <button onClick={() => navigateToBusinessProfile(user.id)}>
+            Business Profile 
+          </button>
+
+
           </div>
         );
       },
     },
   ];
+
+  const navigateToBusinessProfile = (userId: number) => {
+    debugger
+    router.push(`/page/dashboard/users/business-profile/${userId}`);
+  };
+
+  // const navigateToCreateBusinessProfile = (userId: number) => {
+  //   debugger
+  //   router.push(`/dashboard/users/business-profile/${userId}`);
+  // };
+   
 
   const handleView = (id: number) => {
     alert(`Viewing user with ID: ${id}`);
@@ -190,6 +246,154 @@ export default function UserListsPage() {
     handleModalClose();
   };
 
+  const handleOpenDetailsModal = (id: number) => {
+     
+    setSelectedUserId(id);
+    setOpenDetailsModal(true);
+  };
+ 
+  const handleOpenViewModal = async (id: number) => {
+    debugger
+    try {
+      const response = await axios.get(`/api/ApplicationUserDetails/${id}`);
+      const userDetails = response.data.result; // ose response.data.result nëse API e ka `result`
+  
+      setNewDetails({
+        fullName: userDetails.fullName || '',
+        phoneNumber: userDetails.phoneNumber || '',
+        dateOfBirth: userDetails.dateOfBirth || '',
+        profilePicture: userDetails.profilePicture || '',
+      });
+  
+      setSelectedUserId(id);
+      setOpenViewModal(true);
+    } catch (error) { 
+      toast.error('Gabim gjatë marrjes së detajeve për përdoruesin!');
+    }
+  }; 
+  const handleCloseViewModal = () => {
+     
+    setOpenViewModal(false);
+    setSelectedUserId(null);
+    setNewDetails({
+      fullName: '', 
+      phoneNumber: '',
+      dateOfBirth: '',
+      profilePicture: '',
+    });
+  };
+ 
+  const handleCloseDetailsModal = () => {
+     
+    setOpenDetailsModal(false);
+    setSelectedUserId(null);
+    setNewDetails({
+      fullName: '', 
+      phoneNumber: '',
+      dateOfBirth: '',
+      profilePicture: '',
+    });
+  };
+
+  const handleCreateDetails = async () => {
+    if (selectedUserId === null) {
+      toast.error('Nuk u përzgjodh përdoruesi!');
+      return;
+    }
+  
+    try {
+      const payload = {
+        ...newDetails,
+        userId: selectedUserId,
+      };
+  
+      const response = await axios.post('/api/ApplicationUserDetails/create', payload);
+      debugger
+      if (response.status === 200 || response.data.success === true) {
+        toast.success('Detajet u shtuan me sukses!');
+        handleCloseDetailsModal();
+        fetchUsers();
+      } else {
+        toast.error('Gabim gjatë shtimit të detajeve!');
+      }
+    } catch (error) {
+      console.error('Gabim:', error);
+      toast.error('Gabim gjatë shtimit të detajeve!');
+    }
+  };
+     
+
+  const handleOpenUpdateModal = async (id: number) => {
+    try {
+
+      const response = await axios.get(`/api/ApplicationUserDetails/${id}`); 
+      const data = response.data.result;
+  
+      setUpdateDetails({
+        fullName: data.fullName || '',
+        phoneNumber: data.phoneNumber || '',
+        dateOfBirth: data.dateOfBirth ? data.dateOfBirth.split('T')[0] : '',
+        profilePicture: data.profilePicture || '',
+      });
+  
+      setSelectedUserId(id);
+      setOpenUpdateModal(true);
+    } catch (error) {
+      console.error('Gabim gjatë marrjes së të dhënave të përdoruesit:', error);
+      toast.error('Gabim gjatë ngarkimit të të dhënave!');
+    }
+  };
+  
+  
+
+  const handleCloseUpdateModal = () => {
+    setOpenUpdateModal(false);
+    setSelectedUserId(null);
+    setUpdateDetails({
+      fullName: '',
+      phoneNumber: '',
+      dateOfBirth: '',
+      profilePicture: '',
+    });
+  };
+
+  const handleUpdateUser = async () => {
+    if (!selectedUserId) return;
+  
+    const body = {
+      id: selectedUserId,
+      fullName: updateDetails.fullName,
+      phoneNumber: updateDetails.phoneNumber,
+      dateOfBirth: new Date(updateDetails.dateOfBirth).toISOString(),
+      profilePicture: updateDetails.profilePicture,
+    };
+  
+    try {
+      const response = await fetch('/api/ApplicationUserDetails/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text(); 
+        toast.error('Gabim gjatë përditësimit të përdoruesit!'); // Ketu
+        return;
+      }
+  
+      toast.success('Përdoruesi u përditësua me sukses! 🎉'); // Ketu
+      handleCloseUpdateModal();
+      // mundesh me rifresku listen nese don: await fetchUsers();
+    } catch (error) { 
+      toast.error('Gabim gjatë përditësimit të përdoruesit!'); // Ketu
+    }
+  };
+  
+    
+  
+  
   return (
     <Box p={3}>
       <Typography variant="h5" gutterBottom>
@@ -270,7 +474,8 @@ export default function UserListsPage() {
         paginationModel={{ pageSize, page }}
         onPaginationModelChange={handlePaginationChange}
         loading={loading}
-        autoHeight
+        rowHeight={60}
+        style={{ height: 'calc(100vh - 100px)' }}
       />
 
       {/* Modal for confirmation */}
@@ -284,6 +489,129 @@ export default function UserListsPage() {
           <Button onClick={handleActivateConfirm} color="primary" aria-label="Aktivizo përdoruesin">Po</Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog open={openDetailsModal} onClose={handleCloseDetailsModal} aria-labelledby="details-dialog-title">
+      <DialogTitle id="details-dialog-title">Shto Detajet e Përdoruesit</DialogTitle>
+      <DialogContent>
+        <Grid container spacing={2} mt={1}>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Emri i plotë"
+              value={newDetails.fullName}
+              onChange={(e) => setNewDetails({ ...newDetails, fullName: e.target.value })}
+            />
+          </Grid> 
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              label="Telefoni"
+              value={newDetails.phoneNumber}
+              onChange={(e) => setNewDetails({ ...newDetails, phoneNumber: e.target.value })}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              label="Datëlindja"
+              type="date"
+              value={newDetails.dateOfBirth}
+              InputLabelProps={{ shrink: true }}
+              onChange={(e) => setNewDetails({ ...newDetails, dateOfBirth: e.target.value })}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              label="Profile Picture (url)"
+              value={newDetails.profilePicture}
+              onChange={(e) => setNewDetails({ ...newDetails, profilePicture: e.target.value })}
+            />
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleCloseDetailsModal} color="primary">Anulo</Button>
+        <Button onClick={handleCreateDetails} color="primary">Ruaj</Button>
+      </DialogActions>
+    </Dialog>
+
+    <Dialog open={openViewModal} onClose={handleCloseViewModal} aria-labelledby="details-dialog-title">
+  <DialogTitle id="details-dialog-title">Detajet e Përdoruesit</DialogTitle>
+  <DialogContent>
+    <Grid container spacing={2} mt={1}>
+      <Grid item xs={12}>
+        <strong>Emri i plotë:</strong> {newDetails.fullName || '-'}
+      </Grid>
+      <Grid item xs={12}>
+        <strong>Telefoni:</strong> {newDetails.phoneNumber || '-'}
+      </Grid>
+      <Grid item xs={12}>
+        <strong>Datëlindja:</strong> {newDetails.dateOfBirth || '-'}
+      </Grid>
+      <Grid item xs={12}>
+        <strong>Profile Picture:</strong> {newDetails.profilePicture ? (
+          <div>
+            <img src={newDetails.profilePicture} alt="Profile" style={{ width: '100px', height: '100px', objectFit: 'cover', marginTop: '8px' }} />
+          </div>
+        ) : (
+          '-'
+        )}
+      </Grid>
+    </Grid>
+  </DialogContent>
+</Dialog>
+
+
+<Dialog open={openUpdateModal} onClose={handleCloseUpdateModal} aria-labelledby="update-dialog-title">
+  <DialogTitle id="update-dialog-title">Përditëso Detajet e Përdoruesit</DialogTitle>
+  <DialogContent>
+    <Grid container spacing={2} mt={1}>
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label="Emri i plotë"
+          value={updateDetails.fullName}
+          onChange={(e) => setUpdateDetails({ ...updateDetails, fullName: e.target.value })}
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <TextField
+          fullWidth
+          label="Telefoni"
+          value={updateDetails.phoneNumber}
+          onChange={(e) => setUpdateDetails({ ...updateDetails, phoneNumber: e.target.value })}
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <TextField
+          fullWidth
+          label="Datëlindja"
+          type="date"
+          value={updateDetails.dateOfBirth}
+          InputLabelProps={{ shrink: true }}
+          onChange={(e) => setUpdateDetails({ ...updateDetails, dateOfBirth: e.target.value })}
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label="Profile Picture (url)"
+          value={updateDetails.profilePicture}
+          onChange={(e) => setUpdateDetails({ ...updateDetails, profilePicture: e.target.value })}
+        />
+      </Grid>
+    </Grid>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleCloseUpdateModal}>Anulo</Button>
+    <Button onClick={handleUpdateUser} variant="contained" color="primary">
+      Përditëso
+    </Button>
+  </DialogActions>
+</Dialog>
+
+
 
       <ToastContainer />
     </Box>
