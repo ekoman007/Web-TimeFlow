@@ -1,12 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosClient from '@/services/axiosClient';
 import { Box, Typography, Button, Modal, TextField, FormControl, InputLabel, Select, MenuItem, Grid, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import { Eye, EyeClosed, Pencil, PencilLine, Trash2 } from 'lucide-react'; 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
 import { useRouter } from 'next/navigation';  
+import { fetchUsers as fetchUsersService, handleActivateUser } from './userFunctions';
 
 
 interface User {
@@ -61,10 +62,11 @@ export default function UserListsPage() {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const response = await axios.get('/api/Roles/select-list');
+        const response = await axiosClient.get('/Roles/select-list');
         setRoles(response.data);
       } catch (error) {
         console.error('Gabim gjatë marrjes së roleve:', error);
+        toast.error('Gabim gjatë marrjes së roleve!');
       }
     };
 
@@ -75,7 +77,7 @@ export default function UserListsPage() {
     try {
       setLoading(true);
 
-      const response = await axios.get('/api/ApplicationUser', {
+      const response = await axiosClient.get('/ApplicationUser', {
         params: {
           PageNumber: page + 1,
           PageSize: pageSize,
@@ -86,10 +88,16 @@ export default function UserListsPage() {
         },
       });
 
-      setUsers(response.data.result.items);
-      setTotal(response.data.result.totalCount);
+      if (response.data && response.data.result) {
+        setUsers(response.data.result.items);
+        setTotal(response.data.result.totalCount);
+      } else {
+        console.error('Unexpected response format:', response.data);
+        toast.error('Gabim në formatin e të dhënave');
+      }
     } catch (error) {
       console.error('Gabim gjatë marrjes së përdoruesve:', error);
+      toast.error('Gabim gjatë marrjes së përdoruesve! Kontrolloni lidhjen ose identifikimin.');
     } finally {
       setLoading(false);
     }
@@ -182,9 +190,8 @@ export default function UserListsPage() {
 
   const handleEdit = async (id: number) => {
     try {
-      const response = await axios.put(`/api/ApplicationUser/activete/${id}`);
+      const response = await axiosClient.put(`/ApplicationUser/activete/${id}`);
   
-      console.log(response); // Debug response
       if (response.status === 200 && response.data.success) {
         toast.success('Përdoruesi u aktivizua me sukses!');
         fetchUsers();
@@ -221,7 +228,7 @@ export default function UserListsPage() {
         const currentIsActive = selectedUser.isActive; // Gjendja aktuale e isActive për këtë përdorues
   debugger
         try {
-          const response = await axios.put(`/api/ApplicationUser/activete/${selectedUserId}`); // Përdorim PUT dhe kalojmë id në URL
+          const response = await axiosClient.put(`/ApplicationUser/activete/${selectedUserId}`); // Përdorim PUT dhe kalojmë id në URL
   
           if (response.status === 200 && response.data.success) {
             // Ndryshoni mesazhin në bazë të gjendjes
@@ -255,7 +262,7 @@ export default function UserListsPage() {
   const handleOpenViewModal = async (id: number) => {
     debugger
     try {
-      const response = await axios.get(`/api/ApplicationUserDetails/${id}`);
+      const response = await axiosClient.get(`/ApplicationUserDetails/${id}`);
       const userDetails = response.data.result; // ose response.data.result nëse API e ka `result`
   
       setNewDetails({
@@ -307,7 +314,7 @@ export default function UserListsPage() {
         userId: selectedUserId,
       };
   
-      const response = await axios.post('/api/ApplicationUserDetails/create', payload);
+      const response = await axiosClient.post('/ApplicationUserDetails/create', payload);
       debugger
       if (response.status === 200 || response.data.success === true) {
         toast.success('Detajet u shtuan me sukses!');
@@ -326,7 +333,7 @@ export default function UserListsPage() {
   const handleOpenUpdateModal = async (id: number) => {
     try {
 
-      const response = await axios.get(`/api/ApplicationUserDetails/${id}`); 
+      const response = await axiosClient.get(`/ApplicationUserDetails/${id}`); 
       const data = response.data.result;
   
       setUpdateDetails({
@@ -400,66 +407,53 @@ export default function UserListsPage() {
         Lista e Përdoruesve
       </Typography>
 
-      <Grid container spacing={2} mb={2}>
-        <Grid item xs={12} sm={4}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
           <TextField
-            fullWidth
             label="Username"
-            value={username}
-            onChange={(e) => {
-              setPage(0);
-              setUsername(e.target.value);
-            }}
-            aria-label="Filtroni për username"
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <TextField
+            variant="outlined"
             fullWidth
-            label="Email"
-            value={email}
-            onChange={(e) => {
-              setPage(0);
-              setEmail(e.target.value);
-            }}
-            aria-label="Filtroni për email"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
           />
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Email"
+            variant="outlined"
+            fullWidth
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
+            <InputLabel>Role</InputLabel>
             <Select
-              displayEmpty
               value={roleId}
-              onChange={(e) => {
-                setPage(0);
-                setRoleId(e.target.value);
-              }}
-              aria-label="Zgjedh rolin"
+              label="Role"
+              onChange={(e) => setRoleId(e.target.value)}
             >
-              <MenuItem value="">Të gjithë</MenuItem>
+              <MenuItem value="">All</MenuItem>
               {roles.map((role) => (
                 <MenuItem key={role.id} value={role.id}>
-                  {role.roleName ? role.roleName : `⛔ Emër mungon për rolin me ID ${role.id}`}
+                  {role.roleName}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
-            <InputLabel>Aktiv</InputLabel>
+            <InputLabel>Status</InputLabel>
             <Select
               value={isActive}
-              label="Aktiv"
-              onChange={(e) => {
-                setPage(0);
-                setIsActive(e.target.value);
-              }}
-              aria-label="Filtroni për statusin aktiv"
+              label="Status"
+              onChange={(e) => setIsActive(e.target.value)}
             >
-              <MenuItem value="">Të gjithë</MenuItem>
-              <MenuItem value="true">Po</MenuItem>
-              <MenuItem value="false">Jo</MenuItem>
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="true">Active</MenuItem>
+              <MenuItem value="false">Inactive</MenuItem>
             </Select>
           </FormControl>
         </Grid>
@@ -493,37 +487,37 @@ export default function UserListsPage() {
       <Dialog open={openDetailsModal} onClose={handleCloseDetailsModal} aria-labelledby="details-dialog-title">
       <DialogTitle id="details-dialog-title">Shto Detajet e Përdoruesit</DialogTitle>
       <DialogContent>
-        <Grid container spacing={2} mt={1}>
+        <Grid container spacing={2}>
           <Grid item xs={12}>
             <TextField
+              label="Full Name"
               fullWidth
-              label="Emri i plotë"
               value={newDetails.fullName}
               onChange={(e) => setNewDetails({ ...newDetails, fullName: e.target.value })}
             />
-          </Grid> 
-          <Grid item xs={6}>
+          </Grid>
+          <Grid item xs={12}>
             <TextField
+              label="Phone Number"
               fullWidth
-              label="Telefoni"
               value={newDetails.phoneNumber}
               onChange={(e) => setNewDetails({ ...newDetails, phoneNumber: e.target.value })}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12}>
             <TextField
+              label="Date of Birth"
               fullWidth
-              label="Datëlindja"
               type="date"
-              value={newDetails.dateOfBirth}
               InputLabelProps={{ shrink: true }}
+              value={newDetails.dateOfBirth}
               onChange={(e) => setNewDetails({ ...newDetails, dateOfBirth: e.target.value })}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12}>
             <TextField
-              fullWidth
               label="Profile Picture (url)"
+              fullWidth
               value={newDetails.profilePicture}
               onChange={(e) => setNewDetails({ ...newDetails, profilePicture: e.target.value })}
             />
@@ -539,15 +533,15 @@ export default function UserListsPage() {
     <Dialog open={openViewModal} onClose={handleCloseViewModal} aria-labelledby="details-dialog-title">
   <DialogTitle id="details-dialog-title">Detajet e Përdoruesit</DialogTitle>
   <DialogContent>
-    <Grid container spacing={2} mt={1}>
+    <Grid container spacing={2}>
       <Grid item xs={12}>
-        <strong>Emri i plotë:</strong> {newDetails.fullName || '-'}
+        <strong>Full Name:</strong> {newDetails.fullName || '-'}
       </Grid>
       <Grid item xs={12}>
-        <strong>Telefoni:</strong> {newDetails.phoneNumber || '-'}
+        <strong>Phone Number:</strong> {newDetails.phoneNumber || '-'}
       </Grid>
       <Grid item xs={12}>
-        <strong>Datëlindja:</strong> {newDetails.dateOfBirth || '-'}
+        <strong>Date of Birth:</strong> {newDetails.dateOfBirth || '-'}
       </Grid>
       <Grid item xs={12}>
         <strong>Profile Picture:</strong> {newDetails.profilePicture ? (
@@ -566,37 +560,37 @@ export default function UserListsPage() {
 <Dialog open={openUpdateModal} onClose={handleCloseUpdateModal} aria-labelledby="update-dialog-title">
   <DialogTitle id="update-dialog-title">Përditëso Detajet e Përdoruesit</DialogTitle>
   <DialogContent>
-    <Grid container spacing={2} mt={1}>
+    <Grid container spacing={2}>
       <Grid item xs={12}>
         <TextField
+          label="Full Name"
           fullWidth
-          label="Emri i plotë"
           value={updateDetails.fullName}
           onChange={(e) => setUpdateDetails({ ...updateDetails, fullName: e.target.value })}
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid item xs={12}>
         <TextField
+          label="Phone Number"
           fullWidth
-          label="Telefoni"
           value={updateDetails.phoneNumber}
           onChange={(e) => setUpdateDetails({ ...updateDetails, phoneNumber: e.target.value })}
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid item xs={12}>
         <TextField
+          label="Date of Birth"
           fullWidth
-          label="Datëlindja"
           type="date"
-          value={updateDetails.dateOfBirth}
           InputLabelProps={{ shrink: true }}
+          value={updateDetails.dateOfBirth}
           onChange={(e) => setUpdateDetails({ ...updateDetails, dateOfBirth: e.target.value })}
         />
       </Grid>
       <Grid item xs={12}>
         <TextField
-          fullWidth
           label="Profile Picture (url)"
+          fullWidth
           value={updateDetails.profilePicture}
           onChange={(e) => setUpdateDetails({ ...updateDetails, profilePicture: e.target.value })}
         />
