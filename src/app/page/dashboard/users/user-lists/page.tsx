@@ -422,9 +422,10 @@ export default function UserListsPage() {
               setPage(0);
               setEmail(e.target.value);
             }}
-            aria-label="Filtroni për email"
+            aria-label="Filtroni për username"
           />
         </Grid>
+       
         <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <Select

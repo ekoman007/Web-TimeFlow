@@ -49,7 +49,9 @@ export default function Sidebar() {
             </div>
           )}
         </div>
-
+        {/* Link për termine */}
+        <Link href="/page/dashboard/roles">📅 Rolet</Link>
+        
         {/* Link për termine */}
         <Link href="/page/dashboard/appointments">📅 Terminet</Link>
 
