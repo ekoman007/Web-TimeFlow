@@ -17,7 +17,7 @@ export const refreshAccessToken = async () => {
     }
   } catch (error) {
     console.error("Error refreshing access token:", error);
-    window.location.href = "/login"; // Nëse ndodh gabim, drejto në login
+    window.location.href = "/page/login"; // Nëse ndodh gabim, drejto në login
     return null;
   }
 };

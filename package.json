@@ -13,7 +13,7 @@
     "@emotion/styled": "^11.14.0",
     "@headlessui/react": "^2.2.2",
     "@mui/icons-material": "^7.0.2",
-    "@mui/material": "^7.0.2",
+    "@mui/material": "^7.1.0",
     "@mui/x-data-grid": "^8.0.0",
     "axios": "^1.8.4",
     "lucide-react": "^0.503.0",

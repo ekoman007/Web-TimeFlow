@@ -15,7 +15,7 @@ export default function Dashboard() {
     // Kontrolloni nëse tokeni është i pranishëm
     if (!token) {
       // Nëse nuk ka token, drejto përdoruesin në login
-      router.push('/login');
+      router.push('/page/login');
       return;
     }
 

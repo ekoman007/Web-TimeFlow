@@ -7,8 +7,7 @@ export default function useUsers() {
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(0);
-  const [roleName, setRole] = useState('');
-  const [description, setDescription] = useState('');
+  const [roleName, setRole] = useState(''); 
 
   const fetchUsers = async () => {
     try {
@@ -17,8 +16,7 @@ export default function useUsers() {
         params: {
           PageNumber: page + 1,
           PageSize: pageSize,
-          RoleName: roleName || undefined,
-          Description: description || undefined,
+          RoleName: roleName || undefined, 
         },
       });
       setUsers(response.data.result.items);
@@ -32,7 +30,7 @@ export default function useUsers() {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, pageSize, roleName, description]);
+  }, [page, pageSize, roleName]);
 
   return {
     users,
@@ -40,11 +38,10 @@ export default function useUsers() {
     page,
     pageSize,
     total,
-    roleName,
-    description,
+    roleName, 
     setPage,
     setPageSize,
-    setRole,
-    setDescription,
+    setRole,   
+    fetchUsers,
   };
 }

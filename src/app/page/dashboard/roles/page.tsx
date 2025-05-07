@@ -1,8 +1,11 @@
 'use client';
+
+import { useState } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import useUsers from '@/app/page/dashboard/roles/useUsers';
 import UserListTable from '@/app/page/dashboard/roles/UserListTable';
+import AddRoleModal from '@/app/page/dashboard/roles/AddRoleModal'; 
 
 export default function UserListsPage() {
   const {
@@ -12,16 +15,21 @@ export default function UserListsPage() {
     pageSize,
     total,
     roleName,
-    description,
     setPage,
     setPageSize,
     setRole,
-    setDescription,
+    fetchUsers, 
   } = useUsers();
+
+  const [isAddModalOpen, setAddModalOpen] = useState(false);
 
   const handlePaginationChange = (model: { page: number; pageSize: number }) => {
     setPage(model.page);
     setPageSize(model.pageSize);
+  };
+
+  const handleAddRoleClick = () => {
+    setAddModalOpen(true);
   };
 
   return (
@@ -33,11 +41,20 @@ export default function UserListsPage() {
         pageSize={pageSize}
         loading={loading}
         roleName={roleName}
-        description={description}
         onPageChange={handlePaginationChange}
         onRoleChange={setRole}
-        onDescriptionChange={setDescription}
+        onAddNew={handleAddRoleClick}
+        fetchUsers={fetchUsers}
       />
+
+
+      <AddRoleModal
+        open={isAddModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        onSuccess={() => window.location.reload()} 
+        
+      />
+
       <ToastContainer />
     </>
   );
