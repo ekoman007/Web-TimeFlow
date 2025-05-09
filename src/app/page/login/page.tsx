@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axiosClient from "@/services/axiosClient";
+import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
+import { UserRole } from "@/types";
 
-// Definimi i tipit të përgjigjes së login-it
+// Type definition for login response
 interface LoginResponse {
   success: boolean;
   result: {
@@ -20,6 +23,14 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    if (token) {
+      router.push("/page/dashboard");
+    }
+  }, [router]);
 
   const handleLogin = async () => {
     // Validate inputs
@@ -43,19 +54,28 @@ export default function Login() {
         const accessToken = response.data.result.accessToken;
         const roleName = response.data.result.roleName;
   
+        // Create a user object based on the login response
+        const user = {
+          id: 'user-' + Math.random().toString(36).substr(2, 9),
+          email: email,
+          firstName: 'User',
+          lastName: 'Account',
+          role: roleName === 'BussinesAdmin' ? UserRole.Admin : UserRole.Customer,
+          isActive: true,
+          createdAt: new Date().toISOString()
+        };
+        
+        // Store auth data in both formats for compatibility
+        localStorage.setItem("token", accessToken);
+        localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("roleName", roleName);
   
-        console.log("Login successful, redirecting based on role:", roleName);
+        console.log("Login successful, manually redirecting to dashboard");
         
-        // Redirect based on role
-        if (roleName === "BussinesAdmin") {
-          router.push("/page/dashboard"); 
-        } else if (roleName === "User") {
-          router.push("/page/user-dashboard");
-        } else {
-          router.push("/page/dashboard");  // default fallback
-        }
+        // Force redirect to dashboard with window.location instead of router
+        window.location.href = "/page/dashboard";
+        return;
       } else {
         // Handle unsuccessful login with valid response
         setError(response.data?.message || "Login failed - invalid credentials");
@@ -98,32 +118,114 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "auto", padding: 20 }}>
-      <h1>Login</h1>
-      {error && <p style={{ color: "red", marginBottom: 15 }}>{error}</p>}
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        onKeyPress={handleKeyPress}
-        style={{ width: "100%", marginBottom: 10, padding: 8 }}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        onKeyPress={handleKeyPress}
-        style={{ width: "100%", marginBottom: 10, padding: 8 }}
-      />
-      <button 
-        onClick={handleLogin} 
-        style={{ width: "100%", padding: 10 }}
-        disabled={loading}
-      >
-        {loading ? "Logging in..." : "Login"}
-      </button>
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <Link href="/" className="font-bold text-xl text-primary">
+            TimeFlow
+          </Link>
+          <ThemeToggle />
+        </div>
+      </header>
+      
+      <div className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-lg shadow">
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+              Sign in to your account
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+              Or{" "}
+              <Link href="/page/signup" className="font-medium text-primary hover:text-primary-dark">
+                create a new account
+              </Link>
+            </p>
+          </div>
+          
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md p-4 text-sm text-red-600 dark:text-red-400">
+              {error}
+            </div>
+          )}
+          
+          <form className="mt-8 space-y-6" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+            <div className="rounded-md shadow-sm -space-y-px">
+              <div>
+                <label htmlFor="email-address" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="email-address"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-700 rounded"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                  Remember me
+                </label>
+              </div>
+
+              <div className="text-sm">
+                <a href="#" className="font-medium text-primary hover:text-primary-dark">
+                  Forgot your password?
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Signing in..." : "Sign in"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            © {new Date().getFullYear()} TimeFlow. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

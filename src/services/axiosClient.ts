@@ -125,7 +125,7 @@ axiosClient.interceptors.response.use(
           processQueue(new Error(refreshResponse.data.message || 'Refresh token failed'), null);
           
           // Redirect to login page
-          window.location.href = '/page/login';
+          window.location.href = '/';
           return Promise.reject(new Error(refreshResponse.data.message || 'Refresh token failed'));
         }
       } catch (refreshError: any) {
@@ -134,7 +134,7 @@ axiosClient.interceptors.response.use(
         localStorage.removeItem('accessToken');
         
         // Redirect to login
-        window.location.href = '/page/login';
+        window.location.href = '/';
         
         // Handle failed refresh
         processQueue(refreshError, null);
